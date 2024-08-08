@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 torchrl = "*"
-gym = {extras = ["classic_control"], version = "*"}
+gym = {extras = ["mujoco", "classic_control"], version = "*"}
 
 [dev-packages]
 tensordict = "*"

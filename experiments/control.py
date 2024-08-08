@@ -15,24 +15,31 @@ device = torch.device(
 # - Throttle: [0, 100] percent
 # - Aileron
 # - Elevator
+# Or mujoco like for all three combined # (?)
 
-# Q-learning with shallow neural net as function approximator.
-# /delta = Q(s, a) - (r - /gamma max_{a}^{'} Q(s^{'}, a))
-# where /delta is temporal difference error and 
-# /gamma is the discount factor.
+env = gym.make("CartPole-v1")
+# env = gym.make("mujoco") # (?)
+
+# Q-learning with shallow neural network as function approximator.
+# \delta = Q(s, a) - (r - \gamma max_{a}^{'} Q(s^{'}, a))
+# where \delta is temporal difference error and 
+# \gamma is the discount factor.
+# [DQN] https://doi.org/10.48550/arXiv.1312.5602
+# [Wikipedia] https://en.wikipedia.org/wiki/Q-learning
+# [Found Survey Paper] https://doi.org/10.48550/arXiv.2304.00026
 
 # State Space:
 # Speed (Throttle): [0, 1000 or INF]
-# Bank Angle (Aileron): [-180, +180]
-# Pitch (Elevator): [-90, 90]
+# Bank Angle (Aileron): [-180, +180] degrees
+# Pitch (Elevator): [-90, 90] degrees
 # State and Action space are continuous.
-
-env = gym.make("CartPole-v1")
 
 class QN(nn.Module):
     layer_sizes = [32, 64, 32]
     
-    # Single variable => num_states = 1 and actions = 1
+    # Single variable => num_states = 1 and num_actions = 1
+    # All variables => num_states = 3 (speed, bank angle, pitch), 
+    # num_actions = 3 (throttle, aileron, elevator)
     def __init__(self, num_states: int, num_actions: int):
         super(QN, self).__init__()
 
@@ -45,7 +52,7 @@ class QN(nn.Module):
 
         self.layers.append(nn.Linear(self.layer_sizes[-1], num_actions))
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         for layer in self.layers:
             x = F.relu(layer(x))
         return x
@@ -65,3 +72,7 @@ CULMINATE_EPSILON = 1
 LEARNING_RATE = 1
 
 # TODO
+
+if __name__ == "__main__":
+    q = QN(3, 3)
+    assert(len(q.layers) == len(q.layer_sizes) + 1)
